@@ -1,0 +1,4 @@
+ALTER TABLE users
+ADD COLUMN full_name VARCHAR(255),
+ADD COLUMN phone VARCHAR(20),
+ADD COLUMN avatar_url TEXT;
