@@ -11,8 +11,7 @@ const saveOnboardingDetails = async (req, res) => {
       phone,
       avatarUrl,
       role,
-      college,
-      city,
+      profession,
       dietaryPreference,
       messName,
       messAddress,
@@ -36,13 +35,13 @@ const saveOnboardingDetails = async (req, res) => {
       });
     }
 
-    // Student validation
+     // Consumer validation
     if (role === "user") {
-      if (!college || !city || !dietaryPreference) {
+      if (!profession || !dietaryPreference) {
         return res.status(400).json({
           success: false,
           message:
-            "College, city and dietary preference are required",
+            "Profession and dietary preference are required",
         });
       }
     }
@@ -63,8 +62,7 @@ const saveOnboardingDetails = async (req, res) => {
       phone,
       avatarUrl,
       role,
-      college,
-      city,
+      profession,
       dietaryPreference,
       messName,
       messAddress,

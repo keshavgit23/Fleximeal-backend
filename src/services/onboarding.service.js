@@ -39,8 +39,7 @@ const completeOnboardingService = async (clerkId, onboardingData) => {
       phone,
       avatarUrl,
       role,
-      college,
-      city,
+      profession,
       dietaryPreference,
       messName,
       messAddress,
@@ -75,18 +74,16 @@ const completeOnboardingService = async (clerkId, onboardingData) => {
     if (role === "user") {
       await client.query(
         `
-        INSERT INTO student_profiles (
+        INSERT INTO user_profiles (
           user_id,
-          college_name,
-          college_city,
+          profession,
           dietary_preference
         )
-        VALUES ($1, $2, $3, $4)
+        VALUES ($1, $2, $3)
         `,
         [
           user.user_id,
-          college,
-          city,
+          profession,
           dietaryPreference,
         ]
       );
