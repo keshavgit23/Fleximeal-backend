@@ -14,6 +14,10 @@ const {
   updateMessProfileController,
 } = require("../controllers/updateMessProfile.controller");
 
+const {
+  publishMessController,
+} = require("../controllers/publishMess.controller");
+
 const uploadMessPhoto = require("../middleware/messPhotoUpload.middleware");
 const {
   updateMessPhotoController,
@@ -37,4 +41,6 @@ router.patch(
   uploadMessPhoto.single("photo"),
   updateMessPhotoController
 );
+
+router.patch("/publish", authenticate, publishMessController);
 module.exports = router;

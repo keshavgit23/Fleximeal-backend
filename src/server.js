@@ -4,6 +4,9 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth.route");
 const onboardingRoutes = require("./routes/onboarding.route");
 const messPartnerRoutes = require("./routes/messPartner.route");
+const operationalRoutes = require("./routes/operational.route");
+const userRoutes = require("./routes/user.route");
+
 const pool = require("./config/db");
 const path = require("path");
 
@@ -11,6 +14,10 @@ dotenv.config();
 
 const app = express();
 
+const {
+  startMealStatusJob,
+} = require("./jobs/mealStatusJob");
+startMealStatusJob();
 app.use(cors());
 app.use(express.json());
 app.use( "/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -19,6 +26,13 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/auth", onboardingRoutes);
 
 app.use("/api/v1/mess-partner", messPartnerRoutes);
+
+app.use(
+  "/api/v1/mess-partner/operational",
+  operationalRoutes
+);
+
+app.use("/api/v1/user/", userRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).json({
