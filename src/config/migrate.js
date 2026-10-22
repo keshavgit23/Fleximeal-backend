@@ -24,7 +24,12 @@ async function runMigrations() {
         const files = fs
             .readdirSync(migrationsPath)
             .filter((file) => file.endsWith(".sql"))
-            .sort();
+            .sort((a, b) => {
+                const numberA = Number(a.match(/^\d+/)?.[0] ?? 0);
+                const numberB = Number(b.match(/^\d+/)?.[0] ?? 0);
+
+                return numberA - numberB || a.localeCompare(b);
+            });
 
         for (const file of files) {
             const result = await client.query(
