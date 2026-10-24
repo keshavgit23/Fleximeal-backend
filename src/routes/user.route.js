@@ -44,6 +44,10 @@ const {
   getMyPaygBookingsController,
 } = require("../controllers/user/getMyPaygBookings.controller");
 
+const {
+  getMyProfileController,
+} = require("../controllers/user/user.controller");
+
 // Get current user's active subscriptions
 router.get(
   "/subscriptions/me",
@@ -99,5 +103,7 @@ router.get(
   authenticate,
   getMyPaygBookingsController
 );
+
+router.get("/myProfile", authenticate, getMyProfileController);
 
 module.exports = router;
