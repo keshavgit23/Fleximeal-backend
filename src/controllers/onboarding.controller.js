@@ -35,13 +35,21 @@ const saveOnboardingDetails = async (req, res) => {
       });
     }
 
-     // Consumer validation
+    // Consumer validation
     if (role === "user") {
+      const allowedPreferences = ["veg", "non_veg", "both"];
+
       if (!profession || !dietaryPreference) {
         return res.status(400).json({
           success: false,
-          message:
-            "Profession and dietary preference are required",
+          message: "Profession and dietary preference are required",
+        });
+      }
+
+      if (!allowedPreferences.includes(dietaryPreference)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid dietary preference",
         });
       }
     }
