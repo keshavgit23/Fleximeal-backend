@@ -7,6 +7,7 @@ const publishMessController = async (req, res) => {
     const clerkId = req.auth.sub;
 
     const result = await publishMess(clerkId);
+    console.log("Mess published successfully:", result);
 
     return res.status(200).json({
       success: true,

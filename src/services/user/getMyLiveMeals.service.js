@@ -35,9 +35,28 @@ const getMyLiveMeals = async (clerkId) => {
       INNER JOIN subscriptions s
         ON s.user_id = u.user_id
 
-      INNER JOIN meals m
-        ON m.profile_id = s.profile_id
-        AND m.meal_type = s.meal_type
+   INNER JOIN meals m
+  ON m.profile_id = s.profile_id
+  AND (
+    -- Custom monthly plan
+    (
+      s.plan_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM mess_plan_meals pm
+        WHERE pm.plan_id = s.plan_id
+          AND pm.meal_type = m.meal_type
+      )
+    )
+
+    OR
+
+    -- Legacy meal-type subscription
+    (
+      s.plan_id IS NULL
+      AND s.meal_type = m.meal_type
+    )
+  )
 
       INNER JOIN mess_profiles mp
         ON mp.profile_id = m.profile_id

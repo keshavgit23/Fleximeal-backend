@@ -1,5 +1,4 @@
 const pool = require("../../config/db");
-
 const newSubscription = async ({
   userId,
   profileId,

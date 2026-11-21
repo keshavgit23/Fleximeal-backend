@@ -1,6 +1,9 @@
 const {
   newSubscription,
 } = require("../../services/user/newSubscription.service");
+const {
+  getInternalUserId,
+} = require("../../services/user/getInternalUserId.service");
 
 const newSubscriptionController = async (req, res) => {
   try {
@@ -44,14 +47,16 @@ const newSubscriptionController = async (req, res) => {
     }
 
     // Clerk user ID
-    const userId = req.auth?.sub;
+    const clerkId = req.auth?.sub;
 
-    if (!userId) {
+    if (!clerkId) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized",
       });
     }
+
+    const userId = await getInternalUserId(clerkId);
 
     const subscription = await newSubscription({
       userId,

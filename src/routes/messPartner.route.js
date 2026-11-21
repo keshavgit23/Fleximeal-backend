@@ -23,6 +23,19 @@ const {
   updateMessPhotoController,
 } = require("../controllers/updateMessPhoto.controller");
 
+const {
+  createMessPlanController,
+} = require("../controllers/createMessPlan.controller");
+const {
+  getMessPlansController,
+} = require("../controllers/getMessPlans.controller");
+const {
+  createUpiSettingsController,
+} = require("../controllers/createUpiSettings.controller");
+
+const {
+  getUpiSettingsController,
+} = require("../controllers/getUpiSettings.controller");
 const router = express.Router();
 
 router.get(
@@ -43,4 +56,24 @@ router.patch(
 );
 
 router.patch("/publish", authenticate, publishMessController);
+router.post(
+  "/plans",
+  authenticate,
+  createMessPlanController
+);
+router.get("/plans", authenticate, getMessPlansController);
+
+// UPI Payment Settings
+router.post(
+  "/payment-settings",
+  authenticate,
+  createUpiSettingsController
+);
+
+router.get(
+  "/payment-settings",
+  authenticate,
+  getUpiSettingsController
+);
+
 module.exports = router;

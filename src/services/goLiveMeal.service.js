@@ -68,25 +68,44 @@ const goLiveMeal = async (clerkId, mealId) => {
     const confirmations = await client.query(
       `
       INSERT INTO meal_confirmations (
-        meal_id,
-        subscription_id,
-        response
+  meal_id,
+  subscription_id,
+  response
+)
+SELECT
+  $1,
+  s.subscription_id,
+  'PENDING'
+FROM subscriptions s
+WHERE s.profile_id = $2
+  AND s.status = 'ACTIVE'
+  AND s.start_date <= $4::date
+  AND (
+    s.end_date IS NULL
+    OR s.end_date >= $4::date
+  )
+  AND (
+    -- Custom monthly plan subscription
+    (
+      s.plan_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM mess_plan_meals pm
+        WHERE pm.plan_id = s.plan_id
+          AND pm.meal_type = $3
       )
-      SELECT
-        $1,
-        s.subscription_id,
-        'PENDING'
-      FROM subscriptions s
-      WHERE s.profile_id = $2
-        AND s.meal_type = $3
-        AND s.status = 'ACTIVE'
-        AND s.start_date <= $4::date
-        AND (
-          s.end_date IS NULL
-          OR s.end_date >= $4::date
-        )
-      ON CONFLICT (meal_id, subscription_id) DO NOTHING
-      RETURNING confirmation_id
+    )
+
+    OR
+
+    -- Legacy meal-type subscription
+    (
+      s.plan_id IS NULL
+      AND s.meal_type = $3
+    )
+  )
+ON CONFLICT (meal_id, subscription_id) DO NOTHING
+RETURNING confirmation_id
       `,
       [
         meal.meal_id,

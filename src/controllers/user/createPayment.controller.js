@@ -1,9 +1,12 @@
+
 const pool = require("../../config/db");
-const { createPayment } = require("../../services/user/createPayment.service");
+const {
+  createPayment,
+} = require("../../services/user/createPayment.service");
 
 const createPaymentController = async (req, res) => {
   try {
-    // Clerk ID is used only for authentication/identity
+    // 1. Authenticate user
     const clerkId = req.auth?.sub;
 
     if (!clerkId) {
@@ -13,7 +16,7 @@ const createPaymentController = async (req, res) => {
       });
     }
 
-    // Resolve Clerk ID → application-level user ID
+    // 2. Resolve Clerk ID → internal user ID
     const userResult = await pool.query(
       `
         SELECT user_id
@@ -34,20 +37,20 @@ const createPaymentController = async (req, res) => {
 
     const userId = userResult.rows[0].user_id;
 
+    // 3. Read request body
     const {
       profileId,
       amount,
+      planId,
       mealType,
       defaultResponse,
       utr,
       proofUrl,
     } = req.body;
 
-    // Basic validation
+    // 4. Validate required fields
     if (
       !profileId ||
-      !amount ||
-      !mealType ||
       !defaultResponse ||
       !utr
     ) {
@@ -57,12 +60,53 @@ const createPaymentController = async (req, res) => {
       });
     }
 
+    // Exactly one of planId or mealType must be provided
+    const hasPlanId =
+      planId !== undefined && planId !== null;
+
+    const hasMealType =
+      mealType !== undefined && mealType !== null;
+
+    if (hasPlanId === hasMealType) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide either a plan ID or a meal type",
+      });
+    }
+
+    if (!hasPlanId && !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment amount is required",
+      });
+    }
+
+    if (
+      !["YES", "NO"].includes(
+        String(defaultResponse).toUpperCase()
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid default response",
+      });
+    }
+
+    if (typeof utr !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid UTR",
+      });
+    }
+
+    // 5. Create payment
     const payment = await createPayment({
       userId,
       profileId,
       amount,
-      mealType,
-      defaultResponse,
+      planId: hasPlanId ? planId : null,
+      mealType: hasMealType ? mealType : null,
+      defaultResponse: String(defaultResponse).toUpperCase(),
       utr: utr.trim(),
       proofUrl: proofUrl || null,
     });
@@ -80,17 +124,31 @@ const createPaymentController = async (req, res) => {
       return res.status(409).json({
         success: false,
         message:
-          "A pending or verified payment already exists for this mess and meal type",
+          "A pending or verified payment already exists for this mess and selected plan or meal type",
       });
     }
 
-    // Business-level duplicate check from service
+    // Business-level duplicate payment
     if (
-      error.message?.includes(
-        "payment already exists for this mess and meal type"
-      )
+      error.message?.includes("payment already exists")
     ) {
       return res.status(409).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // Validation/business errors
+    if (
+      error.message === "UTR is required" ||
+      error.message === "Invalid UTR format" ||
+      error.message === "Invalid plan ID" ||
+      error.message === "Selected plan is unavailable" ||
+      error.message === "Provide either a plan ID or a meal type" ||
+      error.message === "Meal type is required" ||
+      error.message === "Invalid payment amount"
+    ) {
+      return res.status(400).json({
         success: false,
         message: error.message,
       });
