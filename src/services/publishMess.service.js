@@ -1,3 +1,6 @@
+// 
+
+
 const pool = require("../config/db");
 
 const publishMess = async (clerkId) => {
@@ -12,9 +15,19 @@ const publishMess = async (clerkId) => {
       AND u.clerk_id = $1
       AND u.user_role = 'mess_owner'
 
-      -- Monthly price must be configured
-      AND mp.monthly_price IS NOT NULL
-      AND mp.monthly_price > 0
+      -- At least one active custom subscription plan must exist
+      AND EXISTS (
+        SELECT 1
+        FROM mess_plans mplan
+        WHERE mplan.profile_id = mp.profile_id
+          AND mplan.is_active = TRUE
+          AND mplan.price > 0
+          AND EXISTS (
+            SELECT 1
+            FROM mess_plan_meals mpm
+            WHERE mpm.plan_id = mplan.plan_id
+          )
+      )
 
       -- Mess profile must be complete
       AND NULLIF(TRIM(mp.description), '') IS NOT NULL

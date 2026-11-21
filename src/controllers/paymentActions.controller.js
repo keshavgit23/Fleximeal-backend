@@ -4,6 +4,7 @@ const {
   rejectMessPayment,
 } = require("../services/paymentActions.service");
 
+
 const getErrorResponse = (error) => {
   if (error.code === "PAYMENT_NOT_FOUND") {
     return { status: 404, message: "Payment not found" };
@@ -13,15 +14,22 @@ const getErrorResponse = (error) => {
     return { status: 409, message: error.message };
   }
 
-  if (
-    error.code === "23505" &&
-    error.constraint === "unique_active_subscription"
-  ) {
-    return {
-      status: 409,
-      message:
-        "An active subscription already exists for this meal type.",
-    };
+  if (error.code === "23505") {
+    if (error.constraint === "unique_active_subscription") {
+      return {
+        status: 409,
+        message:
+          "An active subscription already exists for this meal type.",
+      };
+    }
+
+    if (error.constraint === "unique_active_plan_subscription") {
+      return {
+        status: 409,
+        message:
+          "An active subscription already exists for this plan.",
+      };
+    }
   }
 
   return {

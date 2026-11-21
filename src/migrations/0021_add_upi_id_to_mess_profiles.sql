@@ -1,0 +1,2 @@
+ALTER TABLE mess_profiles
+ADD COLUMN IF NOT EXISTS upi_id VARCHAR(255);

@@ -121,4 +121,5 @@ router.put(
   authenticate,
   updatePaygSettingsController
 );
+
 module.exports = router;

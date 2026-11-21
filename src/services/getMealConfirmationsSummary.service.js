@@ -93,12 +93,34 @@ const getMealConfirmationsSummary = async (clerkId, mealId) => {
     INNER JOIN users u
       ON u.user_id = mp.user_id
 
-    LEFT JOIN subscriptions s
-      ON s.profile_id = m.profile_id
+   LEFT JOIN subscriptions s
+  ON s.profile_id = m.profile_id
+  AND s.status = 'ACTIVE'
+  AND s.start_date <= m.meal_date
+  AND (
+    s.end_date IS NULL
+    OR s.end_date >= m.meal_date
+  )
+  AND (
+    -- Custom monthly plan subscriptions
+    (
+      s.plan_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM mess_plan_meals pm
+        WHERE pm.plan_id = s.plan_id
+          AND pm.meal_type = m.meal_type
+      )
+    )
+
+    OR
+
+    -- Legacy meal-type subscriptions
+    (
+      s.plan_id IS NULL
       AND s.meal_type = m.meal_type
-      AND s.status = 'ACTIVE'
-      AND s.start_date <= m.meal_date
-      AND (s.end_date IS NULL OR s.end_date >= m.meal_date)
+    )
+  )
 
     LEFT JOIN meal_confirmations mc
       ON mc.meal_id = m.meal_id
