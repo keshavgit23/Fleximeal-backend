@@ -63,20 +63,20 @@ const getMealConfirmationsSummary = async (clerkId, mealId) => {
   const result = await pool.query(
     `
     SELECT
-      COUNT(mc.confirmation_id) FILTER (
+      COUNT(DISTINCT mc.user_id) FILTER (
         WHERE mc.response = 'YES'
       )::int AS "explicitYes",
 
-      COUNT(s.subscription_id) FILTER (
+      COUNT(DISTINCT s.user_id) FILTER (
         WHERE s.default_response = 'YES'
           AND COALESCE(mc.response, 'PENDING') = 'PENDING'
       )::int AS "defaultYes",
 
-      COUNT(mc.confirmation_id) FILTER (
+      COUNT(DISTINCT mc.user_id) FILTER (
         WHERE mc.response = 'NO'
       )::int AS no,
 
-      COUNT(mc.confirmation_id) FILTER (
+      COUNT(DISTINCT mc.user_id) FILTER (
         WHERE mc.response = 'PENDING'
       )::int AS pending,
 
@@ -124,7 +124,7 @@ const getMealConfirmationsSummary = async (clerkId, mealId) => {
 
     LEFT JOIN meal_confirmations mc
       ON mc.meal_id = m.meal_id
-      AND mc.subscription_id = s.subscription_id
+      AND mc.user_id = s.user_id
 
     WHERE m.meal_id = $1
       AND u.clerk_id = $2
