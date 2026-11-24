@@ -16,7 +16,7 @@ const getPaygSettings = async ({ clerkId }) => {
       ON p.profile_id = mp.profile_id
     WHERE u.clerk_id = $1
       AND u.user_role = 'mess_owner'
-    LIMIT 1
+    ORDER BY p.meal_type
     `,
     [clerkId]
   );
@@ -27,7 +27,6 @@ const getPaygSettings = async ({ clerkId }) => {
 
   const profileId = result.rows[0].profile_id;
 
-  // Initialize all meal types, including unconfigured prices.
   const prices = {
     BREAKFAST: null,
     LUNCH: null,
@@ -39,6 +38,7 @@ const getPaygSettings = async ({ clerkId }) => {
   for (const row of result.rows) {
     if (row.meal_type) {
       prices[row.meal_type] = row.price;
+
       if (!updatedAt || row.updated_at > updatedAt) {
         updatedAt = row.updated_at;
       }

@@ -29,6 +29,10 @@ const {
 } = require("../controllers/user/getMeals.controller");
 
 const {
+  getMealHistoryController,
+} = require("../controllers/user/getMealHistory.controller");
+
+const {
   respondToMealConfirmationController,
 } = require("../controllers/user/respondToMealConfirmation.controller");
 
@@ -82,6 +86,12 @@ router.get(
   "/meals/live",
   authenticate,
   getMyLiveMealsController
+);
+
+router.get(
+  "/meals/history",
+  authenticate,
+  getMealHistoryController
 );
 
 router.patch(
