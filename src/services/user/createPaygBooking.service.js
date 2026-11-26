@@ -84,6 +84,43 @@ const createPaygBooking = async ({ clerkId, mealId }) => {
             throw error;
         }
 
+        const subscriptionResult = await client.query(
+            `
+        SELECT s.subscription_id
+        FROM subscriptions s
+        WHERE s.user_id = $1
+          AND s.profile_id = $2
+          AND s.status = 'ACTIVE'
+          AND s.start_date <= $3
+          AND (s.end_date IS NULL OR s.end_date >= $3)
+          AND (
+            (
+              s.plan_id IS NOT NULL
+              AND EXISTS (
+                SELECT 1
+                FROM mess_plan_meals pm
+                WHERE pm.plan_id = s.plan_id
+                  AND pm.meal_type = $4
+              )
+            )
+            OR (
+              s.plan_id IS NULL
+              AND s.meal_type = $4
+            )
+          )
+        LIMIT 1
+      `,
+            [userId, meal.profile_id, meal.meal_date, meal.meal_type]
+        );
+
+        if (subscriptionResult.rowCount > 0) {
+            const error = new Error(
+                "This meal is already covered by your active subscription"
+            );
+            error.statusCode = 409;
+            throw error;
+        }
+
         // Ensure a price is configured for this mess and meal type.
         const priceResult = await client.query(
             `
